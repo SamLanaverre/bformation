@@ -1,0 +1,64 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f4f4f4;
+}
+
+.signature-container {
+    text-align: center;
+}
+
+canvas {
+    border: 2px solid #000;
+    background-color: #fff;
+    cursor: crosshair;
+    border-radius: 20px;
+}
+
+button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+
+}
+
+img {
+    border: 2px solid #000;
+    width: 500px;
+    height: 200px;
+}
+
+.button-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+}
+
+.retour-btn {
+    margin-right: 20px; /* Espace entre le bouton et le contenu */
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #3498db;
+}
+
+.content {
+    /* Style de la div contenu */
+    padding: 20px;
+    background-color: #f0f0f0;
+    width: 100%;
+    height: 200px; /* Exemple de hauteur */
+}
+

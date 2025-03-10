@@ -1,0 +1,8 @@
+30/10 : BDD créé
+besoin de gérer le register, actuellement l'inscription ne va pas dans la bdd
+
+05/11 : J'ai passé la class en null par défaut pour pouvoir créer un user sans class
+
+12/11 : Gestion des inscriptions faites
+Gestion des connexion en fonction de mail + mdp faite ainsi qu'en fonction du role du 'user'
+

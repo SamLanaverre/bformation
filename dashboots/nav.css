@@ -1,0 +1,37 @@
+body {
+    font-family: 'Raleway', sans-serif;
+    margin: 0;
+    padding-top: 70px; /* Compense la barre de navigation fixée en haut */
+}
+
+.navbar {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ajoute un effet d'ombre */
+}
+
+.navbar-brand {
+    font-size: 24px;
+    color: #4A90E2 !important;
+}
+
+.nav-link {
+    font-weight: 700;
+    color: #333 !important;
+    padding: 8px 16px;
+    transition: background-color 0.3s;
+}
+
+.nav-link:hover {
+    background-color: #f0f0f0;
+}
+
+.navbar-toggler {
+    border: none;
+}
+
+.navbar-toggler-icon {
+    background-image: url('data:image/svg+xml;charset=utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"%3E%3Cpath stroke="%234A90E2" stroke-width="3" d="M2 7h26M2 15h26M2 23h26" /%3E%3C/svg%3E');
+}
+
+.custom_nav-container {
+    padding-top: 15px;
+}

@@ -1,0 +1,22 @@
+/* Styles globaux */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+.bg-purple {
+    background-color: #6c5ce7; /* Couleur de fond violet */
+}
+
+/* Ajout d'un espace en haut du contenu pour ne pas être caché sous la navbar */
+main {
+    padding-top: 100px; /* Ajuste cette valeur selon la hauteur de ta navbar */
+}
+
+/* Styles pour les cartes */
+.card {
+    border-radius: 10px; /* Coins arrondis */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Ombre */
+}
