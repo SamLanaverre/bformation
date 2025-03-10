@@ -1,16 +1,6 @@
 <?php
 session_start(); // Démarrer la session
 
-echo "Session ID : " . session_id(); // Vérifie si un ID de session est bien généré
-
-// Vérifier si une session est active
-if (!isset($_SESSION['user_id'])) {
-    echo "⚠️ Aucun utilisateur connecté.<br>";
-} else {
-    echo "✅ Utilisateur connecté : " . $_SESSION['user_name'] . " (" . $_SESSION['user_role'] . ")<br>";
-}
-var_dump($_SESSION);
-
 // Connexion à la base de données
 $host = 'localhost'; 
 $user = 'root'; 
@@ -63,26 +53,6 @@ function register($pdo, $nom, $prenom, $email, $mdp) {
     }
 }
 
-// Traitement inscription
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['nom'], $_POST['prenom'], $_POST['email'], $_POST['mdp'])) {
-    $nom = trim($_POST['nom']);
-    $prenom = trim($_POST['prenom']);
-    $email = trim($_POST['email']);
-    $mdp = $_POST['mdp'];
-
-    if (!empty($nom) && !empty($prenom) && !empty($email) && !empty($mdp)) {
-        $result = register($pdo, $nom, $prenom, $email, $mdp);
-        if ($result === true) {
-            header("Location: ../dashboots/dashboard.php");
-            exit();
-        } else {
-            echo $result;
-        }
-    } else {
-        echo "Tous les champs sont obligatoires !";
-    }
-}
-
 // Fonction de connexion
 function loginUser($pdo, $email, $mdp) {
     $sql = "SELECT * FROM user WHERE email = :email";
@@ -93,14 +63,16 @@ function loginUser($pdo, $email, $mdp) {
 
     // Vérifier si l'utilisateur existe
     if (!$user) {
-        echo "❌ Utilisateur non trouvé.";
-        return false; // Empêche la suite de s'exécuter
+        $_SESSION['error'] = "Utilisateur non trouvé.";
+        header("Location: ../register/register.php");
+        exit();
     }
 
     // Vérification du mot de passe
     if (!password_verify($mdp, $user['password'])) {
-        echo "❌ Mot de passe incorrect.";
-        return false; // Empêche la suite de s'exécuter
+        $_SESSION['error'] = "Mot de passe incorrect.";
+        header("Location: ../register/register.php");
+        exit();
     }
 
     // Sécurisation de la session
@@ -111,15 +83,50 @@ function loginUser($pdo, $email, $mdp) {
     $_SESSION['user_role'] = strtolower(trim($user['role']));  
     $_SESSION['user_name'] = $user['first_name'];
 
-    // Enregistrement des informations de session pour débogage
-    file_put_contents("session_debug.log", print_r($_SESSION, true));
-
     // Redirection selon le rôle
     if ($_SESSION['user_role'] === 'admin') {
         header("Location: ../adminboots/admin.php");
         exit();
     } else {
         header("Location: ../dashboots/dashboard.php");
+        exit();
+    }
+}
+
+// Traitement inscription
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['nom'], $_POST['prenom'], $_POST['email'], $_POST['mdp'])) {
+    $nom = trim($_POST['nom']);
+    $prenom = trim($_POST['prenom']);
+    $email = trim($_POST['email']);
+    $mdp = $_POST['mdp'];
+
+    if (!empty($nom) && !empty($prenom) && !empty($email) && !empty($mdp)) {
+        $result = register($pdo, $nom, $prenom, $email, $mdp);
+        if ($result === true) {
+            header("Location: ../register/register.php?success=1");
+            exit();
+        } else {
+            $_SESSION['error'] = $result;
+            header("Location: ../register/register.php");
+            exit();
+        }
+    } else {
+        $_SESSION['error'] = "Tous les champs sont obligatoires !";
+        header("Location: ../register/register.php");
+        exit();
+    }
+}
+
+// Traitement connexion
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email'], $_POST['mdp']) && !isset($_POST['nom'], $_POST['prenom'])) {
+    $email = trim($_POST['email']);
+    $mdp = $_POST['mdp'];
+
+    if (!empty($email) && !empty($mdp)) {
+        loginUser($pdo, $email, $mdp);
+    } else {
+        $_SESSION['error'] = "Veuillez remplir tous les champs !";
+        header("Location: ../register/register.php");
         exit();
     }
 }
