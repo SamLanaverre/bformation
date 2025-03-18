@@ -1,6 +1,6 @@
 <?php
 include '../../CoBDD/index.php';
-include '../../CoBDD/session.php';
+// include '../../CoBDD/session.php';
 
 // Ajouter un emploi du temps
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['teacher_id'], $_POST['class_id'], $_POST['schedule_date'], $_POST['start_hour'], $_POST['end_hour'], $_POST['subject_id'])) {

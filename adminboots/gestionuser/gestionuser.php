@@ -1,5 +1,5 @@
 <?php
-include '../CoBDD/index.php'; // Connexion à la BDD
+include '../../CoBDD/index.php'; // Connexion à la BDD
 
 // Ajouter un utilisateur avec mot de passe
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['first_name'], $_POST['surname'], $_POST['email'], $_POST['role'], $_POST['password'])) {

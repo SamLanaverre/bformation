@@ -1,5 +1,5 @@
 <?php
-include '../CoBDD/index.php'; // Connexion à la BDD
+include '../../CoBDD/index.php'; // Connexion à la BDD
 
 /**
  * Fonction pour ajouter une entrée dans une table.

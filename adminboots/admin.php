@@ -1,5 +1,5 @@
 <?php    
-include '../CoBDD/index.php';
+// include '../CoBDD/index.php';
 ?>  
 
 <!DOCTYPE html>

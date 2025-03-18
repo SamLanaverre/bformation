@@ -17,7 +17,7 @@ include '../CoBDD/index.php'
 <div class="form-structor">
     <div class="signup">
         <h2 class="form-title" id="signup"><span>or</span>Inscription</h2>
-        <form method="POST" action="../dashboots/dashboard.php"> <!-- Formulaire d'inscription -->
+        <form method="POST" action="../CoBDD/index.php"> <!-- Formulaire d'inscription -->
             <div class="form-holder">
                 <input type="text" class="input" name="nom" placeholder="Nom" required />
                 <input type="text" class="input" name="prenom" placeholder="Prénom" required />
@@ -30,7 +30,7 @@ include '../CoBDD/index.php'
     <div class="login slide-up">
         <div class="center">
             <h2 class="form-title" id="login"><span>or</span>Connexion</h2>
-            <form method="POST" action="../dashboots/dashboard.php"> <!-- Formulaire de connexion -->
+            <form method="POST" action="../CoBDD/index.php"> <!-- Formulaire de connexion -->
                 <div class="form-holder">
                     <input type="email" class="input" name="email" placeholder="Email" required />
                     <input type="password" class="input" name="mdp" placeholder="Mot de passe" required />
