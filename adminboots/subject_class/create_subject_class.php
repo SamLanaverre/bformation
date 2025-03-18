@@ -63,11 +63,13 @@ $classes = getAllEntries($pdo, 'class', 'idclass');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des Matières et Classes</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="../admin.css">
 </head>
 <body>
 
-<?php include 'navbaradmin.php'; ?>
+<?php
+include '../navbaradmin/navbaradmin.php'
+?>
 
 <main class="container mt-5 pt-5">
     <h1 class="mb-4 text-center">Gestion des Matières</h1>

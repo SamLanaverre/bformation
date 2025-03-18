@@ -70,13 +70,13 @@ $classes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>Gestion des Utilisateurs</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="../admin.css">
 
 </head>
 <body>
 
 <?php
-include 'navbaradmin.php'
+include '../navbaradmin/navbaradmin.php'
 ?>
 
     <main class="container mt-5 pt-5">

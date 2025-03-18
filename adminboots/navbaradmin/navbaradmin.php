@@ -9,16 +9,16 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link active" href="gestionuser/gestionuser.php">Gestion des utilisateurs</a>
+                            <a class="nav-link active" href="../gestionuser/gestionuser.php">Gestion des utilisateurs</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link active" href="gestioncours/gestioncours.php">Gestion des cours</a>
+                            <a class="nav-link active" href="../gestioncours/gestioncours.php">Gestion des cours</a>
                         </li>   
                         <li class="nav-item">
-                            <a class="nav-link active" href="subject_class/create_subject_class.php">Création Matières et Classes</a>
+                            <a class="nav-link active" href="../subject_class/create_subject_class.php">Création Matières et Classes</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="../CoBDD/logout.php">Déconnexion</a>
+                            <a class="nav-link" href="../../CoBDD/logout.php">Déconnexion</a>
                         </li>
                     </ul>
                 </div>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -33,14 +33,14 @@
             </thead>
             <tbody>
                 <!-- met ton php là  -->
-            </tbody>
+            <!-- </tbody>
         </table>
 
         <h2>Ajouter un nouvel utilisateur</h2>
         <form action="add_user.php" method="post">
             <label for="nom">Nom :</label>
-            <input type="text" id="nom" name="nom" required>
-            <label for="email">Email :</label>
+            <input type="text" id="nom" name="nom" required> --> -->
+            <!-- <label for="email">Email :</label>
             <input type="email" id="email" name="email" required>
             <label for="role">Rôle :</label>
             <select id="role" name="role">
@@ -53,4 +53,4 @@
     </main>
 
 </body>
-</html>
+</html> -->

@@ -14,7 +14,7 @@
 <body>
 
 <?php
-include 'navbaradmin.php'
+include '../navbaradmin/navbaradmin.php'
 ?>
 
     <!-- Le contenu du tableau de bord -->

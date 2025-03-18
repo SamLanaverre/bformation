@@ -103,7 +103,9 @@ $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
 
-<?php include '../navbaradmin.php'; ?>
+<?php 
+include '../navbaradmin/navbaradmin.php'
+?>
 
 <main class="container mt-5 pt-5">
     <h1 class="mb-4 text-center">Gestion des Emplois du Temps</h1>

@@ -85,7 +85,7 @@ function loginUser($pdo, $email, $mdp) {
 
     // Redirection selon le rôle
     if ($_SESSION['user_role'] === 'admin') {
-        header("Location: ../adminboots/admin.php");
+        header("Location: ../adminboots/admindashboard/admin.php");
         exit();
     } else {
         header("Location: ../dashboots/dashboard.php");
