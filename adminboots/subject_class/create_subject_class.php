@@ -2,11 +2,21 @@
 include '../../CoBDD/index.php'; // Connexion à la BDD
 
 /**
- * Fonction pour ajouter une entrée dans une table.
+ * Fonction pour ajouter une matière.
  */
-function addEntry($pdo, $table, $column, $value) {
-    $stmt = $pdo->prepare("INSERT INTO $table ($column) VALUES (:value)");
-    $stmt->bindParam(':value', $value, PDO::PARAM_STR);
+function addSubject($pdo, $name) {
+    $stmt = $pdo->prepare("INSERT INTO subject (name) VALUES (:name)");
+    $stmt->bindParam(':name', $name, PDO::PARAM_STR);
+    $stmt->execute();
+}
+
+/**
+ * Fonction pour ajouter une classe avec une salle.
+ */
+function addClass($pdo, $name, $room) {
+    $stmt = $pdo->prepare("INSERT INTO class (name, room) VALUES (:name, :room)");
+    $stmt->bindParam(':name', $name, PDO::PARAM_STR);
+    $stmt->bindParam(':room', $room, PDO::PARAM_STR);
     $stmt->execute();
 }
 
@@ -16,6 +26,16 @@ function addEntry($pdo, $table, $column, $value) {
 function deleteEntry($pdo, $table, $id_column, $id_value) {
     $stmt = $pdo->prepare("DELETE FROM $table WHERE $id_column = :id");
     $stmt->bindParam(':id', $id_value, PDO::PARAM_INT);
+    $stmt->execute();
+}
+
+/**
+ * Fonction pour mettre à jour la salle d'une classe.
+ */
+function updateClassRoom($pdo, $class_id, $room) {
+    $stmt = $pdo->prepare("UPDATE class SET room = :room WHERE idclass = :id");
+    $stmt->bindParam(':room', $room, PDO::PARAM_STR);
+    $stmt->bindParam(':id', $class_id, PDO::PARAM_INT);
     $stmt->execute();
 }
 
@@ -31,7 +51,7 @@ function getAllEntries($pdo, $table, $order_column) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['subject_name'])) {
     $subject_name = trim($_POST['subject_name']);
     if (!empty($subject_name)) {
-        addEntry($pdo, 'subject', 'name', $subject_name);
+        addSubject($pdo, $subject_name);
     }
 }
 
@@ -42,11 +62,19 @@ if (isset($_GET['delete_subject_id'])) {
 $subjects = getAllEntries($pdo, 'subject', 'id_subject');
 
 // Gestion des classes
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['class_name'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['class_name'], $_POST['class_room'])) {
     $class_name = trim($_POST['class_name']);
+    $class_room = trim($_POST['class_room']);
     if (!empty($class_name)) {
-        addEntry($pdo, 'class', 'name', $class_name);
+        addClass($pdo, $class_name, $class_room);
     }
+}
+
+// Mise à jour de la salle d'une classe
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_class_id'], $_POST['edit_room'])) {
+    $edit_class_id = (int)$_POST['edit_class_id'];
+    $edit_room = trim($_POST['edit_room']);
+    updateClassRoom($pdo, $edit_class_id, $edit_room);
 }
 
 if (isset($_GET['delete_class_id'])) {
@@ -67,9 +95,7 @@ $classes = getAllEntries($pdo, 'class', 'idclass');
 </head>
 <body>
 
-<?php
-include '../navbaradmin/navbaradmin.php'
-?>
+<?php include '../navbaradmin/navbaradmin.php'; ?>
 
 <main class="container mt-5 pt-5">
     <h1 class="mb-4 text-center">Gestion des Matières</h1>
@@ -86,7 +112,6 @@ include '../navbaradmin/navbaradmin.php'
     <table class="table table-bordered text-center">
         <thead class="bg-purple text-white">
             <tr>
-                <th>ID</th>
                 <th>Nom de la matière</th>
                 <th>Actions</th>
             </tr>
@@ -95,7 +120,6 @@ include '../navbaradmin/navbaradmin.php'
             <?php if ($subjects): ?>
                 <?php foreach ($subjects as $subject): ?>
                     <tr>
-                        <td><?= htmlspecialchars($subject['id_subject']) ?></td>
                         <td><?= htmlspecialchars($subject['name']) ?></td>
                         <td>
                             <a href="?delete_subject_id=<?= $subject['id_subject'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette matière ?');">Supprimer</a>
@@ -104,7 +128,7 @@ include '../navbaradmin/navbaradmin.php'
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="3">Aucune matière disponible.</td>
+                    <td colspan="2">Aucune matière disponible.</td>
                 </tr>
             <?php endif; ?>
         </tbody>
@@ -114,9 +138,16 @@ include '../navbaradmin/navbaradmin.php'
 
     <!-- Formulaire d'ajout de classe -->
     <form method="POST" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="class_name" class="form-control" placeholder="Nom de la classe" required>
-            <button class="btn btn-success" type="submit">Ajouter</button>
+        <div class="row g-2">
+            <div class="col-md-6">
+                <input type="text" name="class_name" class="form-control" placeholder="Nom de la classe" required>
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="class_room" class="form-control" placeholder="Numéro de salle" required>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-success w-100" type="submit">Ajouter</button>
+            </div>
         </div>
     </form>
 
@@ -124,8 +155,8 @@ include '../navbaradmin/navbaradmin.php'
     <table class="table table-bordered text-center">
         <thead class="bg-purple text-white">
             <tr>
-                <th>ID</th>
                 <th>Nom de la classe</th>
+                <th>Numéro de salle</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -133,11 +164,21 @@ include '../navbaradmin/navbaradmin.php'
             <?php if ($classes): ?>
                 <?php foreach ($classes as $class): ?>
                     <tr>
-                        <td><?= htmlspecialchars($class['idclass']) ?></td>
-                        <td><?= htmlspecialchars($class['name']) ?></td>
-                        <td>
-                            <a href="?delete_class_id=<?= $class['idclass'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette classe ?');">Supprimer</a>
-                        </td>
+                        <form method="POST">
+                            <td><?= htmlspecialchars($class['name']) ?></td>
+                            <td>
+                                <input type="text" name="edit_room" class="form-control" value="<?= htmlspecialchars($class['room'] ?? '') ?>">
+                                <input type="hidden" name="edit_class_id" value="<?= $class['idclass'] ?>">
+                            </td>
+                            <td>
+                                <button type="submit" class="btn btn-primary btn-sm mb-1" title="Enregistrer">
+                                    <i class="bi bi-save"></i> Enregistrer
+                                </button>
+                                <a href="?delete_class_id=<?= $class['idclass'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette classe ?');">
+                                    <i class="bi bi-trash"></i> Supprimer
+                                </a>
+                            </td>
+                        </form>
                     </tr>
                 <?php endforeach; ?>
             <?php else: ?>
