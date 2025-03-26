@@ -5,15 +5,17 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:400,700&display=swap">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="../dashboard.css">
+  <link rel="stylesheet" href="../navbaruser/nav.css">
 </head>
  
 <body>
 <header class="header_section">
   <div class="container-fluid">
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top custom_nav-container">
-      <a class="navbar-brand" href="../dashboard/dashboard.php">
-        <span>BFormation</span>
-      </a>
+    <a class="navbar-brand d-flex align-items-center" href="../dashboard/dashboard.php">
+      <img src="../logo.png" alt="BFormation Logo" height="40" class="me-2">
+      <span>BFormation</span>
+    </a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>

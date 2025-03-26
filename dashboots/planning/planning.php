@@ -134,8 +134,15 @@ $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Organiser les cours par jour pour l'affichage
 $schedule_by_day = [];
 $start_timestamp = strtotime($start_date);
-for ($i = 0; $i < 7; $i++) {
-    $date = date('Y-m-d', strtotime($start_date . " +$i days"));
+
+// Déterminer le premier jour de la semaine (lundi) à partir de la date de début
+$current_day_of_week = date('N', $start_timestamp); // 1 (lundi) à 7 (dimanche)
+$days_to_subtract = $current_day_of_week - 1;
+$first_monday = date('Y-m-d', strtotime($start_date . " -$days_to_subtract days"));
+
+// Générer uniquement les jours de lundi à vendredi (5 jours)
+for ($i = 0; $i < 5; $i++) {
+    $date = date('Y-m-d', strtotime($first_monday . " +$i days"));
     $day_name = date('l', strtotime($date));
     $schedule_by_day[$date] = [
         'date' => $date,
