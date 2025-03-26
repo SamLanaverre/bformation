@@ -4,9 +4,9 @@
   <link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.2.0/css/all.css'>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:400,700&display=swap">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../nav.css">
+  <link rel="stylesheet" href="../dashboard.css">
 </head>
-
+ 
 <body>
 <header class="header_section">
   <div class="container-fluid">
@@ -25,14 +25,8 @@
           <li class="nav-item">
             <a class="nav-link" href="../planning/planning.php">Emploi du temps</a>
           </li>
-          <!-- <li class="nav-item">
-            <a class="nav-link" href="contact.php">Administration</a>
-          </li> -->
           <li class="nav-item">
             <a class="nav-link" href="../../CoBDD/logout.php">Déconnexion</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="../Register/index.php"></a>
           </li>
         </ul>
       </div>
