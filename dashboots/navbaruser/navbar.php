@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="../nav.css">
 </head>
+
 <body>
 <header class="header_section">
   <div class="container-fluid">

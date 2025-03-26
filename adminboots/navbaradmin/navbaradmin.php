@@ -1,5 +1,5 @@
 <!-- Navbar -->
-    <header>
+<header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-purple fixed-top">
             <div class="container">
                 <a class="navbar-brand" href="../admindashboard/admin.php">Admin Dashboard</a>
