@@ -10,7 +10,7 @@
 <header class="header_section">
   <div class="container-fluid">
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top custom_nav-container">
-      <a class="navbar-brand" href="dashboard.php">
+      <a class="navbar-brand" href="../dashboard/dashboard.php">
         <span>BFormation</span>
       </a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,16 +19,16 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item active">
-            <a class="nav-link" href="dashboots/dashboard.php">Accueil</a>
+            <a class="nav-link" href="../dashboard/dashboard.php">Accueil</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="planning/planning.php">Emploi du temps</a>
+            <a class="nav-link" href="../planning/planning.php">Emploi du temps</a>
           </li>
-          <li class="nav-item">
+          <!-- <li class="nav-item">
             <a class="nav-link" href="contact.php">Administration</a>
-          </li>
+          </li> -->
           <li class="nav-item">
-            <a class="nav-link" href="../CoBDD/logout.php">Déconnexion</a>
+            <a class="nav-link" href="../../CoBDD/logout.php">Déconnexion</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="../Register/index.php"></a>

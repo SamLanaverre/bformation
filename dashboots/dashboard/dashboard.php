@@ -1,5 +1,5 @@
 <?php    
-include '../CoBDD/session.php';
+include '../../CoBDD/session.php';
 ?>
 
 <!DOCTYPE html>
@@ -15,7 +15,7 @@ include '../CoBDD/session.php';
 <body>
 
     <header>
-        <?php include 'navbar.php' ?>
+        <?php include '../navbaruser/navbar.php' ?>
     </header>
 
     

@@ -88,7 +88,7 @@ function loginUser($pdo, $email, $mdp) {
         header("Location: ../adminboots/admindashboard/admin.php");
         exit();
     } else {
-        header("Location: ../dashboots/dashboard.php");
+        header("Location: ../dashboots/dashboard/dashboard.php");
         exit();
     }
 }
