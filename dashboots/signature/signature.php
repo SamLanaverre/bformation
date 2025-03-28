@@ -1,5 +1,5 @@
 <?php
-include '../CoBDD/session.php';
+include '../../CoBDD/session.php';
 
 // Récupération de l'ID de la signature depuis l'URL
 $signature_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -63,22 +63,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_presence'])) 
         
         if ($update->execute()) {
             // Redirection avec message de succès
-            header("Location: dashboots/dashboard/dashboard.php?signed=success");
+            header("Location: ../dashboard/dashboard.php?signed=success");
             exit();
         }
     } else {
         // Redirection avec erreur
-        header("Location: dashboots/dashboard/dashboard.php?error=not_available");
+        header("Location: ../dashboard/dashboard.php?error=not_available");
         exit();
     }
 }
 
 // Si la signature n'existe pas ou est déjà signée, rediriger
 if (!$signature) {
-    header("Location: dashboots/dashboard/dashboard.php?error=not_available");
+    header("Location: ../dashboard/dashboard.php?error=not_available");
     exit();
 } elseif ($signature['signed'] == 1) {
-    header("Location: dashboots/dashboard/dashboard.php?error=already_signed");
+    header("Location: ../dashboard/dashboard.php?error=already_signed");
     exit();
 }
 ?>
@@ -91,8 +91,9 @@ if (!$signature) {
     <title>Confirmation de présence</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="dashboots/style.css">
+    <link rel="stylesheet" href="../style.css">
 </head>
+
 <body>
     <div class="container mt-5">
         <div class="row justify-content-center">
@@ -137,7 +138,7 @@ if (!$signature) {
                             </div>
                             
                             <div class="d-flex justify-content-between">
-                                <a href="dashboots/dashboard/dashboard.php" class="btn btn-secondary">
+                                <a href="../dashboard/dashboard.php" class="btn btn-secondary">
                                     <i class="bi bi-arrow-left"></i> Retour
                                 </a>
                                 <button type="submit" class="btn btn-success">

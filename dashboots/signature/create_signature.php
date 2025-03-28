@@ -42,7 +42,7 @@ $stmt = $pdo->prepare("
     JOIN 
         class c ON s.class_id = c.idclass
     WHERE 
-        s.idschedule = :schedule_id AND 
+        s.idschedule = :schedule_id AND
         s.teacher_id = :user_id AND
         s.class_id = :class_id
 ");
