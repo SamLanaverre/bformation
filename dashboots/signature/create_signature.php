@@ -1,9 +1,15 @@
 <?php
-include 'CoBDD/session.php';
+include '../../CoBDD/index.php';
+
+// Vérification manuelle de la session ici
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../../register/register.php");
+    exit();
+}
 
 // Vérifier que l'utilisateur est un professeur
-if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'teacher') {
-    header("Location: dashboots/dashboard/dashboard.php");
+if ($_SESSION['user_role'] !== 'teacher') {
+    header("Location: ../dashboard/dashboard.php");
     exit();
 }
 
@@ -11,19 +17,6 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'teacher') {
 $schedule_id = isset($_GET['schedule_id']) ? (int)$_GET['schedule_id'] : 0;
 $class_id = isset($_GET['class_id']) ? (int)$_GET['class_id'] : 0;
 $user_id = $_SESSION['user_id'];
-
-// Connexion à la base de données
-$host = 'localhost'; 
-$user = 'root'; 
-$password = ''; 
-$database = 'bformation';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$database;charset=utf8mb4", $user, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Erreur de connexion : " . $e->getMessage());
-}
 
 // Vérifier si le cours existe et appartient au professeur connecté
 $stmt = $pdo->prepare("
@@ -42,7 +35,7 @@ $stmt = $pdo->prepare("
     JOIN 
         class c ON s.class_id = c.idclass
     WHERE 
-        s.idschedule = :schedule_id AND
+        s.idschedule = :schedule_id AND 
         s.teacher_id = :user_id AND
         s.class_id = :class_id
 ");
