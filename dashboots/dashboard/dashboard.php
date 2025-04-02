@@ -1,10 +1,22 @@
 <?php
 include '../../CoBDD/session.php';
 
-// Vérifier que l'utilisateur est un professeur
-if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'teacher') {
-    header("Location: ../dashboard/dashboard.php");
-    exit();
+// Récupérer le rôle actuel de l'utilisateur
+$user_role = isset($_SESSION['user_role']) ? strtolower(trim($_SESSION['user_role'])) : '';
+
+// Vérifier que l'utilisateur est un professeur sans causer de redirection infinie
+if ($user_role !== 'teacher') {
+    // Déterminer la page actuelle
+    $current_page = basename($_SERVER['PHP_SELF']);
+    
+    // Ne pas rediriger si on est déjà sur la page dashboard.php
+    if ($current_page !== 'dashboard.php') {
+        header("Location: ../dashboard/dashboard.php");
+        exit();
+    }
+    // Si on est déjà sur dashboard.php, simplement afficher un message d'erreur
+    // au lieu de rediriger et créer une boucle
+    $error_message = "Accès non autorisé. Ce contenu est réservé aux enseignants.";
 }
 
 // Récupérer les IDs depuis l'URL
@@ -60,15 +72,16 @@ $stmt->bindParam(':schedule_id', $schedule_id, PDO::PARAM_INT);
 $stmt->execute();
 $signatures_exist = $stmt->fetchColumn() > 0;
 
-// Si le cours n'existe pas ou appartient à un autre professeur, rediriger
+// Si le cours n'existe pas ou appartient à un autre professeur, rediriger mais éviter une boucle
 if (!$course) {
-    header("Location: ../dashboard/dashboard.php?error=invalid_course");
+    // Ajouter un paramètre pour empêcher la redirection en boucle
+    header("Location: ../dashboard/dashboard.php?error=invalid_course&noloop=1");
     exit();
 }
 
-// Si des signatures existent déjà, rediriger
+// Si des signatures existent déjà, rediriger mais éviter une boucle
 if ($signatures_exist) {
-    header("Location: ../dashboard/dashboard.php?error=signatures_exist");
+    header("Location: ../dashboard/dashboard.php?error=signatures_exist&noloop=1");
     exit();
 }
 
@@ -78,7 +91,7 @@ $course_start = $course['schedule_date'] . ' ' . date('H:i:s', strtotime($course
 $course_end = $course['schedule_date'] . ' ' . date('H:i:s', strtotime($course['date_hour_end']));
 
 if ($current_datetime < $course_start || $current_datetime > $course_end) {
-    header("Location: ../dashboard/dashboard.php?error=not_course_time");
+    header("Location: ../dashboard/dashboard.php?error=not_course_time&noloop=1");
     exit();
 }
 
@@ -122,8 +135,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Valider la transaction
         $pdo->commit();
         
-        // Rediriger avec un message de succès
-        header("Location: ../dashboard/dashboard.php?signatures_created=success");
+        // Rediriger avec un message de succès et éviter une boucle
+        header("Location: ../dashboard/dashboard.php?signatures_created=success&noloop=1");
         exit();
         
     } catch (Exception $e) {
@@ -144,6 +157,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body>
+    <?php if (isset($error_message)): ?>
+    <div class="container mt-5">
+        <div class="alert alert-danger">
+            <?= $error_message ?>
+            <a href="../dashboard/dashboard.php" class="btn btn-primary mt-3">Retour au tableau de bord</a>
+        </div>
+    </div>
+    <?php else: ?>
     <div class="container mt-5">
         <div class="row">
             <div class="col-md-10 mx-auto">
@@ -226,10 +247,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </div>
+    <?php endif; ?>
     
     <script>
         // Fonction pour sélectionner/désélectionner tous les élèves
-        document.getElementById('select-all').addEventListener('change', function() {
+        document.getElementById('select-all')?.addEventListener('change', function() {
             const studentCheckboxes = document.querySelectorAll('.student-checkbox');
             studentCheckboxes.forEach(checkbox => {
                 checkbox.checked = this.checked;
