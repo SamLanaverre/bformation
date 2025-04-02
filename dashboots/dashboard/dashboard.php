@@ -1,28 +1,10 @@
 <?php
-include '../../CoBDD/session.php';
+include '../../CoBDD/session.php'; // Inclut le fichier de vérification de session
 
-// Récupérer le rôle actuel de l'utilisateur
+// Récupérer les informations de base de l'utilisateur depuis la session
+$user_id = $_SESSION['user_id'] ?? 0;
 $user_role = isset($_SESSION['user_role']) ? strtolower(trim($_SESSION['user_role'])) : '';
-
-// Vérifier que l'utilisateur est un professeur sans causer de redirection infinie
-if ($user_role !== 'teacher') {
-    // Déterminer la page actuelle
-    $current_page = basename($_SERVER['PHP_SELF']);
-    
-    // Ne pas rediriger si on est déjà sur la page dashboard.php
-    if ($current_page !== 'dashboard.php') {
-        header("Location: ../dashboard/dashboard.php");
-        exit();
-    }
-    // Si on est déjà sur dashboard.php, simplement afficher un message d'erreur
-    // au lieu de rediriger et créer une boucle
-    $error_message = "Accès non autorisé. Ce contenu est réservé aux enseignants.";
-}
-
-// Récupérer les IDs depuis l'URL
-$schedule_id = isset($_GET['schedule_id']) ? (int)$_GET['schedule_id'] : 0;
-$class_id = isset($_GET['class_id']) ? (int)$_GET['class_id'] : 0;
-$user_id = $_SESSION['user_id'];
+$user_name = $_SESSION['user_name'] ?? '';
 
 // Connexion à la base de données
 $host = 'localhost'; 
@@ -37,112 +19,111 @@ try {
     die("Erreur de connexion : " . $e->getMessage());
 }
 
-// Vérifier si le cours existe et appartient au professeur connecté
-$stmt = $pdo->prepare("
-    SELECT 
-        s.idschedule, 
-        s.schedule_date, 
-        s.date_hour_start, 
-        s.date_hour_end, 
-        sub.name AS subject_name, 
-        c.name AS class_name,
-        c.room AS class_room
-    FROM 
-        schedule s
-    JOIN 
-        subject sub ON s.subject_id = sub.id_subject
-    JOIN 
-        class c ON s.class_id = c.idclass
-    WHERE 
-        s.idschedule = :schedule_id AND 
-        s.teacher_id = :user_id AND
-        s.class_id = :class_id
-");
-$stmt->bindParam(':schedule_id', $schedule_id, PDO::PARAM_INT);
-$stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-$stmt->bindParam(':class_id', $class_id, PDO::PARAM_INT);
-$stmt->execute();
-$course = $stmt->fetch(PDO::FETCH_ASSOC);
+// Récupérer les messages d'erreur/succès de l'URL pour les afficher
+$error = $_GET['error'] ?? '';
+$success = $_GET['success'] ?? '';
+$signed = $_GET['signed'] ?? '';
+$signatures_created = $_GET['signatures_created'] ?? '';
 
-// Vérifier si des signatures existent déjà pour ce cours
-$stmt = $pdo->prepare("
-    SELECT COUNT(*) FROM signature WHERE schedule_id = :schedule_id
-");
-$stmt->bindParam(':schedule_id', $schedule_id, PDO::PARAM_INT);
-$stmt->execute();
-$signatures_exist = $stmt->fetchColumn() > 0;
+// Contenu pour les élèves
+if ($user_role === 'élève') {
+    // Récupérer la classe de l'élève
+    $stmt = $pdo->prepare("SELECT class_id FROM user WHERE idUser = :user_id");
+    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $class_id = $result['class_id'] ?? null;
 
-// Si le cours n'existe pas ou appartient à un autre professeur, rediriger mais éviter une boucle
-if (!$course) {
-    // Ajouter un paramètre pour empêcher la redirection en boucle
-    header("Location: ../dashboard/dashboard.php?error=invalid_course&noloop=1");
-    exit();
-}
-
-// Si des signatures existent déjà, rediriger mais éviter une boucle
-if ($signatures_exist) {
-    header("Location: ../dashboard/dashboard.php?error=signatures_exist&noloop=1");
-    exit();
-}
-
-// Vérifier si c'est l'heure du cours
-$current_datetime = date('Y-m-d H:i:s');
-$course_start = $course['schedule_date'] . ' ' . date('H:i:s', strtotime($course['date_hour_start']));
-$course_end = $course['schedule_date'] . ' ' . date('H:i:s', strtotime($course['date_hour_end']));
-
-if ($current_datetime < $course_start || $current_datetime > $course_end) {
-    header("Location: ../dashboard/dashboard.php?error=not_course_time&noloop=1");
-    exit();
-}
-
-// Récupérer tous les élèves de la classe
-$stmt = $pdo->prepare("
-    SELECT idUser, first_name, surname, email 
-    FROM user 
-    WHERE class_id = :class_id AND role = 'élève'
-    ORDER BY surname, first_name
-");
-$stmt->bindParam(':class_id', $class_id, PDO::PARAM_INT);
-$stmt->execute();
-$students = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Traitement du formulaire
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Récupérer les élèves marqués comme présents
-    $present_students = isset($_POST['present']) ? $_POST['present'] : [];
+    if ($class_id) {
+        // Récupérer les 5 prochains cours pour cette classe
+        $stmt = $pdo->prepare("
+            SELECT 
+                s.idschedule, 
+                s.schedule_date, 
+                s.date_hour_start, 
+                s.date_hour_end, 
+                sub.name AS subject_name, 
+                CONCAT(u.first_name, ' ', u.surname) AS teacher_name
+            FROM 
+                schedule s
+            JOIN subject sub ON s.subject_id = sub.id_subject
+            JOIN user u ON s.teacher_id = u.idUser
+            WHERE 
+                s.class_id = :class_id AND
+                s.schedule_date >= CURDATE()
+            ORDER BY 
+                s.schedule_date ASC, s.date_hour_start ASC
+            LIMIT 5
+        ");
+        $stmt->bindParam(':class_id', $class_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $upcoming_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Récupérer les signatures en attente
+        $stmt = $pdo->prepare("
+            SELECT 
+                sig.idsignature,
+                s.schedule_date,
+                sub.name AS subject_name,
+                s.date_hour_start,
+                s.date_hour_end
+            FROM 
+                signature sig
+            JOIN schedule s ON sig.schedule_id = s.idschedule
+            JOIN subject sub ON s.subject_id = sub.id_subject
+            WHERE 
+                sig.user_id = :user_id AND
+                sig.signed = 0
+            ORDER BY s.schedule_date ASC
+        ");
+        $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $pending_signatures = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+} 
+// Contenu pour les enseignants
+elseif ($user_role === 'teacher') {
+    // Récupérer les prochains cours pour ce professeur
+    $stmt = $pdo->prepare("
+        SELECT 
+            s.idschedule, 
+            s.class_id,
+            s.schedule_date, 
+            s.date_hour_start, 
+            s.date_hour_end, 
+            sub.name AS subject_name, 
+            c.name AS class_name
+        FROM 
+            schedule s
+        JOIN subject sub ON s.subject_id = sub.id_subject
+        JOIN class c ON s.class_id = c.idclass
+        WHERE 
+            s.teacher_id = :user_id AND
+            s.schedule_date >= CURDATE()
+        ORDER BY 
+            s.schedule_date ASC, s.date_hour_start ASC
+        LIMIT 5
+    ");
+    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $upcoming_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Commencer une transaction
-    $pdo->beginTransaction();
-    
-    try {
-        // Pour chaque élève présent, créer une signature
-        foreach ($students as $student) {
-            // Vérifier si l'élève est marqué comme présent
-            $is_present = in_array($student['idUser'], $present_students);
+    // Vérifier l'état de chaque cours (signatures existantes, cours en cours)
+    if (!empty($upcoming_courses)) {
+        $current_datetime = date('Y-m-d H:i:s');
+        
+        foreach ($upcoming_courses as &$course) {
+            // Vérifier si des signatures existent déjà
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM signature WHERE schedule_id = :schedule_id");
+            $stmt->bindParam(':schedule_id', $course['idschedule'], PDO::PARAM_INT);
+            $stmt->execute();
+            $course['has_signatures'] = $stmt->fetchColumn() > 0;
             
-            // Créer la signature (présent mais non signé)
-            if ($is_present) {
-                $stmt = $pdo->prepare("
-                    INSERT INTO signature (user_id, schedule_id, signed) 
-                    VALUES (:user_id, :schedule_id, 0)
-                ");
-                $stmt->bindParam(':user_id', $student['idUser'], PDO::PARAM_INT);
-                $stmt->bindParam(':schedule_id', $schedule_id, PDO::PARAM_INT);
-                $stmt->execute();
-            }
+            // Vérifier si le cours est actuellement en cours
+            $course_start = $course['schedule_date'] . ' ' . date('H:i:s', strtotime($course['date_hour_start']));
+            $course_end = $course['schedule_date'] . ' ' . date('H:i:s', strtotime($course['date_hour_end']));
+            $course['is_current'] = ($current_datetime >= $course_start && $current_datetime <= $course_end);
         }
-        
-        // Valider la transaction
-        $pdo->commit();
-        
-        // Rediriger avec un message de succès et éviter une boucle
-        header("Location: ../dashboard/dashboard.php?signatures_created=success&noloop=1");
-        exit();
-        
-    } catch (Exception $e) {
-        // En cas d'erreur, annuler la transaction
-        $pdo->rollBack();
-        die("Erreur lors de la création des signatures : " . $e->getMessage());
     }
 }
 ?>
@@ -152,111 +133,189 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lancer les signatures</title>
+    <title>Tableau de Bord</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="../dashboard.css">
 </head>
 <body>
-    <?php if (isset($error_message)): ?>
-    <div class="container mt-5">
-        <div class="alert alert-danger">
-            <?= $error_message ?>
-            <a href="../dashboard/dashboard.php" class="btn btn-primary mt-3">Retour au tableau de bord</a>
-        </div>
-    </div>
-    <?php else: ?>
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-md-10 mx-auto">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h2 class="mb-0">Lancer les signatures pour le cours</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-4">
-                            <h3><?= htmlspecialchars($course['subject_name']) ?></h3>
-                            <p class="mb-1">
-                                <i class="bi bi-calendar-event"></i> 
-                                <strong>Date:</strong> <?= date('d/m/Y', strtotime($course['schedule_date'])) ?>
-                            </p>
-                            <p class="mb-1">
-                                <i class="bi bi-clock"></i> 
-                                <strong>Horaires:</strong> 
-                                <?= date('H:i', strtotime($course['date_hour_start'])) ?> - 
-                                <?= date('H:i', strtotime($course['date_hour_end'])) ?>
-                            </p>
-                            <p class="mb-1">
-                                <i class="bi bi-people"></i> 
-                                <strong>Classe:</strong> <?= htmlspecialchars($course['class_name']) ?>
-                            </p>
-                            <p class="mb-3">
-                                <i class="bi bi-geo-alt"></i> 
-                                <strong>Salle:</strong> <?= htmlspecialchars($course['class_room']) ?>
-                            </p>
-                        </div>
+    <?php include '../navbaruser/navbar.php'; // Inclut la barre de navigation ?>
 
-                        <form method="POST" action="">
-                            <div class="mb-3">
-                                <h4>Marquer les élèves présents</h4>
-                                <p class="text-muted small">Seuls les élèves cochés comme présents pourront signer ce cours.</p>
-                                
-                                <div class="mb-3">
-                                    <div class="form-check form-switch mb-2">
-                                        <input class="form-check-input" type="checkbox" id="select-all">
-                                        <label class="form-check-label" for="select-all">
-                                            <strong>Sélectionner tous les élèves</strong>
-                                        </label>
-                                    </div>
-                                </div>
-                                
-                                <div class="list-group">
-                                    <?php if (empty($students)): ?>
-                                        <div class="alert alert-info">
-                                            Aucun élève n'est assigné à cette classe.
-                                        </div>
-                                    <?php else: ?>
-                                        <?php foreach ($students as $student): ?>
-                                            <div class="list-group-item">
-                                                <div class="form-check">
-                                                    <input class="form-check-input student-checkbox" type="checkbox" name="present[]" 
-                                                           value="<?= $student['idUser'] ?>" id="student-<?= $student['idUser'] ?>">
-                                                    <label class="form-check-label" for="student-<?= $student['idUser'] ?>">
-                                                        <?= htmlspecialchars($student['surname'] . ' ' . $student['first_name']) ?>
-                                                        <span class="text-muted small">(<?= htmlspecialchars($student['email']) ?>)</span>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            
-                            <div class="d-flex justify-content-between mt-4">
-                                <a href="../dashboard/dashboard.php" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-left"></i> Annuler
-                                </a>
-                                <?php if (!empty($students)): ?>
-                                    <button type="submit" class="btn btn-success">
-                                        <i class="bi bi-check-circle"></i> Créer les signatures
-                                    </button>
-                                <?php endif; ?>
-                            </div>
-                        </form>
+    <div class="container mt-5 pt-5">
+        <!-- Affichage des messages d'erreur -->
+        <?php if (!empty($error)): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <?php 
+                // Affiche un message d'erreur selon le code reçu
+                switch($error) {
+                    case 'invalid_course': echo "Le cours spécifié n'existe pas ou vous n'êtes pas autorisé à y accéder."; break;
+                    case 'signatures_exist': echo "Des signatures existent déjà pour ce cours."; break;
+                    case 'not_course_time': echo "Vous ne pouvez lancer les signatures que pendant la période du cours."; break;
+                    case 'not_available': echo "Cette signature n'est pas disponible."; break;
+                    case 'already_signed': echo "Vous avez déjà signé ce cours."; break;
+                    default: echo "Une erreur s'est produite.";
+                }
+                ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <!-- Affichage des messages de succès -->
+        <?php if (!empty($success) || !empty($signed) || !empty($signatures_created)): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <?php 
+                if (!empty($signatures_created)) echo "Les signatures ont été créées avec succès.";
+                elseif (!empty($signed)) echo "Votre présence a été confirmée avec succès.";
+                else echo "Opération réussie.";
+                ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <div class="row">
+            <!-- Entête du tableau de bord -->
+            <div class="col-lg-12 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Bienvenue <?= htmlspecialchars($user_name) ?></h4>
+                        <h6 class="card-subtitle mb-2 text-muted">
+                            <?= $user_role === 'élève' ? 'Étudiant' : ($user_role === 'teacher' ? 'Enseignant' : 'Administrateur') ?>
+                        </h6>
                     </div>
                 </div>
             </div>
+            
+            <?php if ($user_role === 'élève'): ?>
+                <!-- SECTION ÉLÈVE: Affichage des cours à venir -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Cours à venir</h5>
+                        </div>
+                        <div class="card-body">
+                            <?php if (isset($upcoming_courses) && !empty($upcoming_courses)): ?>
+                                <div class="list-group">
+                                    <?php foreach ($upcoming_courses as $course): ?>
+                                        <div class="list-group-item">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h5 class="mb-1"><?= htmlspecialchars($course['subject_name']) ?></h5>
+                                                <small><?= date('d/m/Y', strtotime($course['schedule_date'])) ?></small>
+                                            </div>
+                                            <p class="mb-1">
+                                                <i class="bi bi-clock"></i> 
+                                                <?= date('H:i', strtotime($course['date_hour_start'])) ?> - 
+                                                <?= date('H:i', strtotime($course['date_hour_end'])) ?>
+                                            </p>
+                                            <p class="mb-1">
+                                                <i class="bi bi-person"></i> 
+                                                <?= htmlspecialchars($course['teacher_name']) ?>
+                                            </p>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-center">Aucun cours à venir.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SECTION ÉLÈVE: Affichage des signatures en attente -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">Signatures en attente</h5>
+                        </div>
+                        <div class="card-body">
+                            <?php if (isset($pending_signatures) && !empty($pending_signatures)): ?>
+                                <div class="list-group">
+                                    <?php foreach ($pending_signatures as $signature): ?>
+                                        <a href="../signature/signature.php?id=<?= $signature['idsignature'] ?>" class="list-group-item list-group-item-action">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h5 class="mb-1"><?= htmlspecialchars($signature['subject_name']) ?></h5>
+                                                <small><?= date('d/m/Y', strtotime($signature['schedule_date'])) ?></small>
+                                            </div>
+                                            <p class="mb-1">
+                                                <i class="bi bi-clock"></i> 
+                                                <?= date('H:i', strtotime($signature['date_hour_start'])) ?> - 
+                                                <?= date('H:i', strtotime($signature['date_hour_end'])) ?>
+                                            </p>
+                                            <p class="mb-0 text-success">
+                                                <i class="bi bi-pencil-square"></i> Cliquez pour signer
+                                            </p>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-center">Aucune signature en attente.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                
+            <?php elseif ($user_role === 'teacher'): ?>
+                <!-- SECTION ENSEIGNANT: Affichage des cours et option pour lancer les signatures -->
+                <div class="col-lg-12 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Vos prochains cours</h5>
+                        </div>
+                        <div class="card-body">
+                            <?php if (isset($upcoming_courses) && !empty($upcoming_courses)): ?>
+                                <div class="list-group">
+                                    <?php foreach ($upcoming_courses as $course): ?>
+                                        <div class="list-group-item">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h5 class="mb-1"><?= htmlspecialchars($course['subject_name']) ?></h5>
+                                                <small><?= date('d/m/Y', strtotime($course['schedule_date'])) ?></small>
+                                            </div>
+                                            <p class="mb-1">
+                                                <i class="bi bi-clock"></i> 
+                                                <?= date('H:i', strtotime($course['date_hour_start'])) ?> - 
+                                                <?= date('H:i', strtotime($course['date_hour_end'])) ?>
+                                            </p>
+                                            <p class="mb-1">
+                                                <i class="bi bi-people"></i> 
+                                                Classe: <?= htmlspecialchars($course['class_name']) ?>
+                                            </p>
+                                            
+                                            <?php if ($course['is_current'] && !$course['has_signatures']): ?>
+                                                <!-- Affiche un bouton pour lancer les signatures si le cours est en cours et pas encore de signatures -->
+                                                <a href="dashboard.php?schedule_id=<?= $course['idschedule'] ?>&class_id=<?= $course['class_id'] ?>&noloop=1" class="btn btn-success btn-sm mt-2">
+                                                    <i class="bi bi-pencil-square"></i> Lancer les signatures
+                                                </a>
+                                            <?php elseif ($course['has_signatures']): ?>
+                                                <span class="badge bg-info">Signatures déjà initiées</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-center">Aucun cours à venir.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php elseif ($user_role === 'admin'): ?>
+                <!-- SECTION ADMIN: Message d'information -->
+                <div class="col-lg-12">
+                    <div class="alert alert-info">
+                        <h5>Administration</h5>
+                        <p>Vous êtes connecté en tant qu'administrateur. Utilisez les liens dans la barre de navigation pour gérer le système.</p>
+                    </div>
+                </div>
+            <?php else: ?>
+                <!-- Message pour les utilisateurs avec un rôle non reconnu -->
+                <div class="col-lg-12">
+                    <div class="alert alert-warning">
+                        <h5>Rôle non reconnu</h5>
+                        <p>Votre rôle n'a pas été correctement défini dans le système. Veuillez contacter un administrateur.</p>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
-    <?php endif; ?>
-    
-    <script>
-        // Fonction pour sélectionner/désélectionner tous les élèves
-        document.getElementById('select-all')?.addEventListener('change', function() {
-            const studentCheckboxes = document.querySelectorAll('.student-checkbox');
-            studentCheckboxes.forEach(checkbox => {
-                checkbox.checked = this.checked;
-            });
-        });
-    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
