@@ -1,5 +1,5 @@
 <?php    
-// include '../CoBDD/index.php';
+include_once '../../CoBDD/sessionmanage.php';
 ?>  
 
 <!DOCTYPE html>

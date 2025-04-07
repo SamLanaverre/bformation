@@ -1,5 +1,8 @@
 <?php
-session_start(); // Démarre la session ou la continue
+// Vérifier si une session est déjà active avant de la démarrer
+if (session_status() == PHP_SESSION_NONE) {
+    session_start(); // Démarre la session ou la continue
+}
 
 // Récupérer le nom du script actuel
 $current_script = basename($_SERVER['PHP_SELF']);

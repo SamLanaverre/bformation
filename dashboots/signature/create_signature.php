@@ -1,5 +1,6 @@
 <?php
 include '../../CoBDD/index.php';
+include_once '../../CoBDD/sessionmanage.php';
 
 // Vérification manuelle de la session ici
 if (!isset($_SESSION['user_id'])) {
@@ -116,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->commit();
         
         // Rediriger avec un message de succès
-        header("Location: dashboots/dashboard/dashboard.php?signatures_created=success");
+        header("Location: ../dashboard/dashboard.php?signatures_created=success");
         exit();
         
     } catch (Exception $e) {

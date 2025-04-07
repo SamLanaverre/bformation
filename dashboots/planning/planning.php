@@ -1,5 +1,6 @@
 <?php
 include '../../CoBDD/index.php'; // Connexion à la base de données
+include_once '../../CoBDD/sessionmanage.php';
 
 // Récupérer les informations de l'utilisateur connecté
 $user_id = $_SESSION['user_id'];

@@ -1,22 +1,21 @@
 <?php
-include '../../CoBDD/session.php'; // Inclut le fichier de vérification de session
+include '../../CoBDD/index.php';
+include_once '../../CoBDD/sessionmanage.php';
 
 // Récupérer les informations de base de l'utilisateur depuis la session
 $user_id = $_SESSION['user_id'] ?? 0;
 $user_role = isset($_SESSION['user_role']) ? strtolower(trim($_SESSION['user_role'])) : '';
 $user_name = $_SESSION['user_name'] ?? '';
 
-// Connexion à la base de données
-$host = 'localhost'; 
-$user = 'root'; 
-$password = ''; 
-$database = 'bformation';
+// Vérifier si une demande de lancer des signatures a été faite
+$schedule_id = isset($_GET['schedule_id']) ? (int)$_GET['schedule_id'] : 0;
+$class_id = isset($_GET['class_id']) ? (int)$_GET['class_id'] : 0;
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$database;charset=utf8mb4", $user, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Erreur de connexion : " . $e->getMessage());
+// Si les IDs sont présents et que l'utilisateur est un professeur, traiter la demande de signatures
+if ($schedule_id > 0 && $class_id > 0 && $user_role === 'teacher') {
+    // Rediriger vers la page de création de signatures
+    header("Location: ../signature/create_signature.php?schedule_id=$schedule_id&class_id=$class_id");
+    exit();
 }
 
 // Récupérer les messages d'erreur/succès de l'URL pour les afficher

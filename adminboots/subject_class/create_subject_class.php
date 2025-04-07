@@ -1,18 +1,13 @@
 <?php
-include '../../CoBDD/index.php'; // Connexion à la BDD
+include '../../CoBDD/index.php';
+include_once '../../CoBDD/sessionmanage.php';
 
-/**
- * Fonction pour ajouter une matière.
- */
 function addSubject($pdo, $name) {
     $stmt = $pdo->prepare("INSERT INTO subject (name) VALUES (:name)");
     $stmt->bindParam(':name', $name, PDO::PARAM_STR);
     $stmt->execute();
 }
 
-/**
- * Fonction pour ajouter une classe avec une salle.
- */
 function addClass($pdo, $name, $room) {
     $stmt = $pdo->prepare("INSERT INTO class (name, room) VALUES (:name, :room)");
     $stmt->bindParam(':name', $name, PDO::PARAM_STR);
@@ -20,18 +15,16 @@ function addClass($pdo, $name, $room) {
     $stmt->execute();
 }
 
-/**
- * Fonction pour supprimer une entrée dans une table par ID.
- */
+// Fonction pour supprimer une entrée dans une table par ID
 function deleteEntry($pdo, $table, $id_column, $id_value) {
     $stmt = $pdo->prepare("DELETE FROM $table WHERE $id_column = :id");
     $stmt->bindParam(':id', $id_value, PDO::PARAM_INT);
     $stmt->execute();
 }
 
-/**
- * Fonction pour mettre à jour la salle d'une classe.
- */
+
+// Fonction pour mettre à jour la salle d'une classe
+
 function updateClassRoom($pdo, $class_id, $room) {
     $stmt = $pdo->prepare("UPDATE class SET room = :room WHERE idclass = :id");
     $stmt->bindParam(':room', $room, PDO::PARAM_STR);
@@ -39,9 +32,8 @@ function updateClassRoom($pdo, $class_id, $room) {
     $stmt->execute();
 }
 
-/**
- * Fonction pour récupérer toutes les entrées d'une table.
- */
+// Fonction pour récupérer toutes les entrées d'une table
+
 function getAllEntries($pdo, $table, $order_column) {
     $stmt = $pdo->query("SELECT * FROM $table ORDER BY $order_column DESC");
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
