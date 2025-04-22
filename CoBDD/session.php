@@ -1,4 +1,4 @@
-<?php
+<!-- <?php
 // Vérifier si une session est déjà active avant de la démarrer
 if (session_status() == PHP_SESSION_NONE) {
     session_start(); // Démarre la session ou la continue
@@ -13,4 +13,4 @@ if (!isset($_SESSION['user_id']) && $current_script !== 'register.php') {
     header("Location: ../register/register.php");
     exit();
 }
-?>
+?> -->
