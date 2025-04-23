@@ -1,5 +1,5 @@
 <?php
-include '../../CoBDD/session.php';
+include '../../CoBDD/sessionmanage.php';
 
 // Récupération de l'ID de la signature depuis l'URL
 $signature_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
